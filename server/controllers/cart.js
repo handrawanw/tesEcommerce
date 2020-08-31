@@ -77,13 +77,20 @@ class Cart {
         }).then(({dataCart})=>{
             //kurangin saldo
             return UserCollection.findOne({_id:req.decoded.id}).then((data)=>{
-                return UserCollection.updateOne({_id:req.decoded.id},{saldo:data.saldo-(dataCart.jumlahCart*dataCart.price)}).then((dataUpdate)=>{
-                    return true;
-                }).catch((err)=>{
+               if(data){
+                    return UserCollection.updateOne({_id:req.decoded.id},{saldo:Number(data.saldo)-Number(dataCart.jumlahCart*dataCart.price)}).then((dataUpdate)=>{
+                        console.log(dataUpdate);
+                        return true;
+                    }).catch((err)=>{
+                        throw({
+                            type:"Error kurangin saldo user 2",
+                            message:err.message});
+                    });
+               }else{
                     throw({
-                        type:"Error kurangin saldo user 2",
-                        message:err.message});
-                });
+                        type:"Error kurangin saldo user 3",
+                        message:"Info user tidak ada"});
+               } 
             }).catch((err)=>{
                     throw({
                         type:"Error kurangin saldo user 1",
