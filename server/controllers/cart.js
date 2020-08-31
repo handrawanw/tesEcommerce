@@ -78,8 +78,8 @@ class Cart {
             //kurangin saldo
             return UserCollection.findOne({_id:req.decoded.id}).then((data)=>{
                if(data){
-                    return UserCollection.updateOne({_id:req.decoded.id},{saldo:Number(data.saldo)-Number(dataCart.jumlahCart*dataCart.price)}).then((dataUpdate)=>{
-                        console.log(dataUpdate);
+                    let hasilSaldo=Number(Number(data.saldo)-Number(dataCart.price*dataCart.jumlah));
+                    return UserCollection.updateOne({_id:req.decoded.id},{saldo:hasilSaldo}).then((dataUpdate)=>{
                         return true;
                     }).catch((err)=>{
                         throw({
