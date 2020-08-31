@@ -19,28 +19,24 @@ app.prepare().then(()=>{
     require("./mongo");
     //connect to mongo db
 
-    //req body
-        server.use(express.urlencoded({extended:true}));
-        server.use(express.json());
-    //req.body
-
     //cors
     server.use(cors());
     //cors
-
+    
+    //req body
+    server.use(express.urlencoded({extended:true}));
+    server.use(express.json());
+    //req.body
+    
+    
     //router
     server.use(require("./router/index"));
     //router
-
-    server.get("*",(req,res)=>{
-        return handle(req,res);
-    });
 
     server.listen(PORT,(err)=>{
         if (err) throw err;
             console.log(`OK BRO Server is running ${PORT}`);
     });
-
 
 }).catch((err)=>{
     console.error(err);

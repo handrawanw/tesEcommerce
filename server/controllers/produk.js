@@ -15,7 +15,7 @@ class Produk {
             });
         }).catch((err)=>{
             res.status(500).json({
-                message:`${email} Produk gagal`,
+                message:`${email} Produk gagal ditambahkan`,
                 httpCode:500,
             });
         });

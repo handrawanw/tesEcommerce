@@ -48,6 +48,21 @@ class Users {
         });
     }
 
+    getOne(req,res){
+        userModel.findOne({_id:req.decoded.id}).then((data)=>{
+            res.status(200).json({
+                message:`Success get one`,
+                data,
+                httpCode:200,
+            });
+        }).catch((err)=>{
+            res.status(500).json({
+                message:err.message,
+                httpCode:500,
+            });
+        });
+    }
+
 
     deleteAll(req,res){
         userModel.deleteMany({}).then((data)=>{
@@ -66,7 +81,7 @@ class Users {
     loginUser(req,res,next){
         let {email,password}=req.body;
         userModel.findOne({
-            email,password,
+            email,password
         }).then((data)=>{
             if(data){
                 next();
