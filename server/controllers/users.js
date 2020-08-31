@@ -15,7 +15,7 @@ class Users {
                     email,password
                 }).then((hasil)=>{
                     res.status(200).json({
-                        message:`${data.email} User create`,
+                        message:`${hasil.email} User create`,
                         httpCode:200,
                     });
                 }).catch((err)=>{

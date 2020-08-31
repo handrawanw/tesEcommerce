@@ -1,7 +1,7 @@
 let express=require("express");
 let next=require("next");
 
-let PORT=process.env.PORT||3001;
+let PORT=process.env.PORT||3000;
 let dev=process.env.NODE_ENV!=='production';
 let app=next({dev});
 
@@ -32,6 +32,10 @@ app.prepare().then(()=>{
     //router
     server.use(require("./router/index"));
     //router
+
+    server.get("*",(req,res)=>{
+        return handle(req,res);
+    });
 
     server.listen(PORT,(err)=>{
         if (err) throw err;

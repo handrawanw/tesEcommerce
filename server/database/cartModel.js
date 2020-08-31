@@ -19,7 +19,7 @@ let cartModel=new Schema({
         type:Number,
         required:["Jumlah harus ada !! ",true]
     },
-    from_product_userid:{
+    from_product_id:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Produk'
     },
