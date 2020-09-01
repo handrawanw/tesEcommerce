@@ -1,5 +1,5 @@
 let mongoose=require("mongoose");
-let url="mongodb://localhost:27017";
+let url="mongodb://localhost:27017/marketplace";
 
 mongoose.connect(url,{useUnifiedTopology:true,useNewUrlParser:true,useFindAndModify:false});
 

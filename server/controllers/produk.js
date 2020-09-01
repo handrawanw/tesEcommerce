@@ -39,9 +39,10 @@ class Produk {
     getAllProduk(req,res){
         ProdukCollection.find({}).then((data)=>{
             if(data){
+                //produk user sendiri tidak akan bisa dilihat ketika dia login di semua produk
                 res.status(200).json({
                     message:`Produk ditemukan`,
-                    data,
+                    data:data.filter((item)=>item.user.toString()!==req.decoded.id.toString()?item:null),
                     httpCode:200,
                 });
             }else{

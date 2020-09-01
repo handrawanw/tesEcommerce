@@ -40,10 +40,10 @@ class Cart {
                     return CartCollection.create({
                         user:data.user,
                         product_name:data.product_name,
-                        price:data.price,
+                        price:Number(data.price*jumlahCart),
                         jumlah:jumlahCart,
                         from_product_id:data._id,
-                        status:"BUY",
+                        status:"FAVORITE",
                     }).then((dataCart)=>{
                         return {
                             dataCart,
@@ -60,46 +60,60 @@ class Cart {
                         message:`Pesanan tidak dapat dicukupi, jumlah stok ${data.jumlah}`});
                 }
 
-        }).then(({dataCart,dataProduk})=>{
-            //kalaw cukup kurangin stok produk
-           return ProdukCollection.findOneAndUpdate({
-               _id:dataCart.from_product_id,
-               
-           },{
-               jumlah:dataProduk.jumlah-dataCart.jumlah
-           }).then((data)=>{
-                return {dataCart};
-           }).catch((err)=>{
-                throw({
-                    type:"Error kurangin produk",
-                    message:err.message});
-           });
-        }).then(({dataCart})=>{
-            //kurangin saldo
-            return UserCollection.findOne({_id:req.decoded.id}).then((data)=>{
-               if(data){
-                    let hasilSaldo=Number(Number(data.saldo)-Number(dataCart.price*dataCart.jumlah));
-                    return UserCollection.updateOne({_id:req.decoded.id},{saldo:hasilSaldo}).then((dataUpdate)=>{
-                        return true;
-                    }).catch((err)=>{
-                        throw({
-                            type:"Error kurangin saldo user 2",
-                            message:err.message});
-                    });
-               }else{
-                    throw({
-                        type:"Error kurangin saldo user 3",
-                        message:"Info user tidak ada"});
-               } 
-            }).catch((err)=>{
-                    throw({
-                        type:"Error kurangin saldo user 1",
-                        message:err.message});
-            });
         }).then((data)=>{
             res.status(200).json({
-                message:"Sukses ditambahkan",
+                message:"Sukses ditambahkan ke cart",
                 data,
+                httpCode:200,
+            });
+        }).catch((err)=>{
+            res.status(500).json({
+                message:err.message,
+                type:err.type,
+                httpCode:500,
+            });
+        });
+    }
+
+    bayarCart(req,res){
+        //get data cart dulu dan data produk
+        CartCollection.find({user:req.decoded.id}).then((dataCart)=>{
+            if(dataCart){
+                return {dataCart};
+            }else{
+                throw({
+                    message:"data Cart tidak ada",
+                    type:"Error data cart promise tidak ada",
+                });
+            }
+        }).then(({dataCart})=>{
+            //setelah itu data produk dikurangin jumlah cart
+            return new Promise((resolve,reject)=>{
+                "use strict";
+                try {
+                    dataCart.filter((item)=>item.status.toUpperCase()==="FAVORITE").forEach(async (item)=>{
+                        let getSaldoUserPembeli=await UserCollection({_id:req.decoded.id});
+                        //get saldo user pembeli
+                        let dataProduk=await ProdukCollection.findOne({_id:item.from_product_id}).populate("user",["saldo"]);
+                        //data produk si penjual
+                        await ProdukCollection.updateOne({_id:dataProduk._id},{jumlah:Number(Number(dataProduk.jumlah)-item.jumlah)});
+                        //kurangin stok barang
+                        await UserCollection.updateOne({_id:req.decoded.id},{saldo:Number(Number(getSaldoUserPembeli.saldo)-Number(item.price))})
+                        //kurangin saldo user pembeli
+                        await UserCollection.updateOne({_id:dataProduk.user._id},{saldo:Number(Number(dataProduk.user.saldo)+Number(item.price))})
+                        //tambah saldo user penjual
+                    });
+                    resolve({dataCart});
+                }catch(error){
+                    reject({
+                        message:error.message,
+                        type:"ERROR MESSAGE",
+                    });                    
+                }
+            })
+        }).then((data)=>{
+            res.status(200).json({
+                message:"Cart sukses dibayar",
                 httpCode:200,
             });
         }).catch((err)=>{
@@ -129,9 +143,14 @@ class Cart {
     getCart(req,res){
         CartCollection.find({}).then((data)=>{
             if(data){
+                let totalBayar=0;
+                data.forEach((item)=>{
+                    totalBayar+=item.price;
+                });
                 res.status(200).json({
                     message:"Data ditemukan",
                     data,
+                    total:totalBayar,
                     httpCode:200,
                 });
             }else{
