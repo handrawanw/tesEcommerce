@@ -12,7 +12,7 @@ class Cart {
                 return UserCollection.findOne({_id:req.decoded.id}).then((dataUser)=>{
                     if(dataUser){
                         if((jumlahCart*data.price)<=dataUser.saldo){
-                            return data;
+                            return {data,dataUser};
                         }else{
                         throw({
                             type:"Error User Cek saldo",
@@ -33,12 +33,12 @@ class Cart {
                     type:"Error User Cek saldo",
                     message:"Produk tidak ditemukan"});
             }
-        }).then((data)=>{
+        }).then(({data,dataUser})=>{
             //analisa pesanan cukup ngga sama stok produk
             //buat pesanan
                 if(jumlahCart<=data.jumlah){
                     return CartCollection.create({
-                        user:data.user,
+                        user:dataUser._id,
                         product_name:data.product_name,
                         price:Number(data.price*jumlahCart),
                         jumlah:jumlahCart,
@@ -92,6 +92,8 @@ class Cart {
                 "use strict";
                 try {
                     dataCart.filter((item)=>item.status.toUpperCase()==="FAVORITE").forEach(async (item)=>{
+                        await CartCollection.updateOne({user:req.decoded.id},{status:"SUDAH DIBELI"});
+                        //update status produk
                         let getSaldoUserPembeli=await UserCollection({_id:req.decoded.id});
                         //get saldo user pembeli
                         let dataProduk=await ProdukCollection.findOne({_id:item.from_product_id}).populate("user",["saldo"]);
