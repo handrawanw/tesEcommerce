@@ -92,7 +92,7 @@ class Cart {
                 "use strict";
                 try {
                     dataCart.filter((item)=>item.status.toUpperCase()==="FAVORITE").forEach(async (item)=>{
-                        await CartCollection.updateOne({user:req.decoded.id},{status:"SUDAH DIBELI"});
+                        await CartCollection.updateOne({_id:item._id},{status:"SUDAH DIBELI"});
                         //update status produk
                         let getSaldoUserPembeli=await UserCollection({_id:req.decoded.id});
                         //get saldo user pembeli
@@ -143,7 +143,7 @@ class Cart {
     }
 
     getCart(req,res){
-        CartCollection.find({}).then((data)=>{
+        CartCollection.find({user:req.decoded.id}).then((data)=>{
             if(data){
                 let totalBayar=0;
                 data.forEach((item)=>{
